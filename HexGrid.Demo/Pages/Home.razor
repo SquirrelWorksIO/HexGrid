@@ -1,0 +1,223 @@
+﻿@page "/"
+
+<PageTitle>HexGrid Demo - Home</PageTitle>
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">🔷 HexGrid Library Demo</h1>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h4>Welcome to the HexGrid Library Interactive Demo!</h4>
+                <p>
+                    This demo showcases the HexGrid.Lib library's capabilities for generating and visualizing hexagonal grids.
+                    Click on any hex to select it and see its coordinates.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Grid Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Grid Type</label>
+                        <select class="form-select" @bind="selectedGridType" @bind:after="GenerateGrid">
+                            <option value="rectangular">Rectangular</option>
+                            <option value="hexagonal">Hexagonal</option>
+                            <option value="triangular">Triangular</option>
+                            <option value="parallelogram">Parallelogram</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Orientation</label>
+                        <select class="form-select" @bind="orientationValue" @bind:after="OnOrientationChanged">
+                            <option value="pointy">Pointy Top</option>
+                            <option value="flat">Flat Top</option>
+                        </select>
+                    </div>
+
+                    @if (selectedGridType == "rectangular" || selectedGridType == "parallelogram")
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Width: @gridWidth</label>
+                            <input type="range" class="form-range" min="2" max="12" @bind="gridWidth" @bind:after="GenerateGrid" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Height: @gridHeight</label>
+                            <input type="range" class="form-range" min="2" max="10" @bind="gridHeight" @bind:after="GenerateGrid" />
+                        </div>
+                    }
+
+                    @if (selectedGridType == "hexagonal")
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Radius: @hexRadius</label>
+                            <input type="range" class="form-range" min="1" max="5" @bind="hexRadius" @bind:after="GenerateGrid" />
+                        </div>
+                    }
+
+                    @if (selectedGridType == "triangular")
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Size: @triangleSize</label>
+                            <input type="range" class="form-range" min="2" max="8" @bind="triangleSize" @bind:after="GenerateGrid" />
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label">Hex Size: @hexSize</label>
+                        <input type="range" class="form-range" min="10" max="50" @bind="hexSize" @bind:after="GenerateGrid" />
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" @bind="showCoordinates" id="showCoords">
+                        <label class="form-check-label" for="showCoords">
+                            Show Coordinates
+                        </label>
+                    </div>
+
+                    <button class="btn btn-success w-100" @onclick="GenerateGrid">
+                        🔄 Regenerate Grid
+                    </button>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">Grid Info</h6>
+                </div>
+                <div class="card-body">
+                    @if (currentGrid != null)
+                    {
+                        <small>
+                            <strong>Type:</strong> @selectedGridType<br/>
+                            <strong>Orientation:</strong> @(isPointy ? "Pointy" : "Flat")<br/>
+                            <strong>Hex Count:</strong> @GetHexCount()
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Grid Visualization</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (currentGrid != null)
+                    {
+                        <HexGridVisualization Grid="@currentGrid" 
+                                            Width="900" 
+                                            Height="650" 
+                                            ShowCoordinates="@showCoordinates"
+                                            HexColor="#2196F3"
+                                            StrokeColor="#1976D2" />
+                    }
+                    else
+                    {
+                        <div class="text-center p-5">
+                            <p class="text-muted">Loading grid...</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">About Hexagonal Grids</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Coordinate Systems</h6>
+                    <p>
+                        This library uses <strong>Axial Coordinates</strong> (Q, R) for hexagonal grids:
+                    </p>
+                    <ul>
+                        <li><strong>Q</strong>: The column coordinate</li>
+                        <li><strong>R</strong>: The row coordinate</li>
+                        <li><strong>S</strong>: Cube coordinate (derived: S = -Q - R)</li>
+                    </ul>
+                    
+                    <h6 class="mt-3">Grid Types</h6>
+                    <ul>
+                        <li><strong>Rectangular:</strong> A rectangular arrangement of hexagons</li>
+                        <li><strong>Hexagonal:</strong> A hexagon-shaped arrangement of hexagons</li>
+                        <li><strong>Triangular:</strong> A triangular arrangement of hexagons</li>
+                        <li><strong>Parallelogram:</strong> A parallelogram-shaped arrangement of hexagons</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string selectedGridType = "rectangular";
+    private bool isPointy = true;
+    private string orientationValue = "pointy";
+    private int gridWidth = 6;
+    private int gridHeight = 5;
+    private int hexRadius = 3;
+    private int triangleSize = 5;
+    private int hexSize = 30;
+    private bool showCoordinates = true;
+    private global::HexGrid.Lib.Models.HexGrid? currentGrid;
+
+    protected override void OnInitialized()
+    {
+        GenerateGrid();
+    }
+
+    private void OnOrientationChanged()
+    {
+        isPointy = orientationValue == "pointy";
+        GenerateGrid();
+    }
+
+    private void GenerateGrid()
+    {
+        var orientation = isPointy ? LayoutOrientation.Pointy : LayoutOrientation.Flat;
+        var layout = new GridLayout(
+            orientation,
+            new PointD(hexSize, hexSize),
+            new FractionalHexCoordinate(450, 325, 0)
+        );
+
+        currentGrid = selectedGridType switch
+        {
+            "rectangular" => global::HexGrid.Lib.Models.HexGrid.CreateRectangle(layout, gridWidth, gridHeight),
+            "hexagonal" => new global::HexGrid.Lib.Models.HexGrid(
+                layout,
+                HexGridGenerator.GenerateHexagonalGrid(layout, hexRadius)
+            ),
+            "triangular" => new global::HexGrid.Lib.Models.HexGrid(
+                layout,
+                HexGridGenerator.GenerateTriangularGrid(layout, triangleSize)
+            ),
+            "parallelogram" => new global::HexGrid.Lib.Models.HexGrid(
+                layout,
+                HexGridGenerator.GenerateParallelogramGrid(layout, gridWidth, gridHeight, ParallelogramOrientation.QR)
+            ),
+            _ => global::HexGrid.Lib.Models.HexGrid.CreateRectangle(layout, gridWidth, gridHeight)
+        };
+
+        StateHasChanged();
+    }
+
+    private int GetHexCount()
+    {
+        if (currentGrid?.Grid == null) return 0;
+        return currentGrid.Grid.Sum(row => row.Length);
+    }
+}
