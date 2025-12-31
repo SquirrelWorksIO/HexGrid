@@ -215,11 +215,11 @@ Use Conventional Commits format. See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md
 **Quick examples:**
 
 ```text
-feat: add hexagonal ring generation +semver: minor
-fix: correct neighbor calculation for edge cases +semver: patch
-docs: update API documentation +semver: none
-refactor: optimize distance calculations +semver: none
-BREAKING CHANGE: remove deprecated coordinate methods +semver: major
+feat: add hexagonal ring generation
+fix: correct neighbor calculation for edge cases
+docs: update API documentation
+refactor: optimize distance calculations
+BREAKING CHANGE: remove deprecated coordinate methods
 ```
 
 ## License
