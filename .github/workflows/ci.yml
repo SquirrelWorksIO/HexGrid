@@ -1,4 +1,4 @@
-# GitHub Actions CI/CD Workflow for HexGrid
+﻿# GitHub Actions CI/CD Workflow for HexGrid
 # This workflow builds the solution, runs tests, generates coverage reports, and publishes test results
 
 name: CI/CD Pipeline
@@ -50,7 +50,6 @@ jobs:
       id: gitversion
       uses: gittools/actions/gitversion/execute@v4
       with:
-        useConfigFile: true
         configFilePath: GitVersion.yml
         updateAssemblyInfo: false
         
@@ -274,15 +273,14 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v3.0.2
+      uses: gittools/actions/gitversion/setup@v4
       with:
         versionSpec: '6.x'
 
     - name: Determine Version
       id: gitversion
-      uses: gittools/actions/gitversion/execute@v3.0.2
+      uses: gittools/actions/gitversion/execute@v4
       with:
-        useConfigFile: true
         configFilePath: GitVersion.yml
 
     - name: Check if Tag Exists
