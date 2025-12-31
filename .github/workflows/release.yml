@@ -40,6 +40,14 @@ jobs:
       with:
         useConfigFile: true
         configFilePath: GitVersion.yml
+        updateAssemblyInfo: false
+        
+    - name: Set GitVersion Environment Variables
+      run: |
+        echo "GitVersion_SemVer=${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_ENV
+        echo "GitVersion_AssemblySemVer=${{ steps.gitversion.outputs.assemblySemVer }}" >> $GITHUB_ENV
+        echo "GitVersion_AssemblySemFileVer=${{ steps.gitversion.outputs.assemblySemFileVer }}" >> $GITHUB_ENV
+        echo "GitVersion_InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }}" >> $GITHUB_ENV
 
     - name: Display Version Information
       run: |
@@ -82,12 +90,7 @@ jobs:
         dotnet pack HexGrid.Lib/HexGrid.Lib.csproj \
           --configuration ${{ env.BUILD_CONFIGURATION }} \
           --no-restore \
-          --output ./packages \
-          /p:Version=${{ steps.gitversion.outputs.semVer }} \
-          /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} \
-          /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} \
-          /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }} \
-          /p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }}
+          --output ./packages
 
     - name: Upload Package to GitHub Release
       if: github.event_name == 'release'
