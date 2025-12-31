@@ -1,0 +1,203 @@
+﻿# GitHub Actions CI/CD Workflow for HexGrid
+# This workflow builds the solution, runs tests, generates coverage reports, and publishes test results
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - 'testing/**'
+      - 'feature/**'
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  BUILD_CONFIGURATION: 'Release'
+  SOLUTION_PATH: 'HexGrid.sln'
+  TEST_PROJECT: 'HexGrid.Tests/HexGrid.Tests.csproj'
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+    - name: Build Solution
+      run: dotnet build ${{ env.SOLUTION_PATH }} --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+
+    - name: Run Tests with Coverage
+      run: |
+        dotnet test ${{ env.TEST_PROJECT }} `
+          --configuration ${{ env.BUILD_CONFIGURATION }} `
+          --no-build `
+          --verbosity normal `
+          --collect:"XPlat Code Coverage" `
+          --results-directory ./TestResults `
+          --logger "trx;LogFileName=TestResults.trx"
+
+    - name: Install ReportGenerator
+      run: dotnet tool install --global dotnet-reportgenerator-globaltool --ignore-failed-sources
+
+    - name: Generate Coverage Report
+      if: always()
+      run: |
+        reportgenerator `
+          -reports:"./TestResults/**/coverage.cobertura.xml" `
+          -targetdir:"./TestResults/CoverageReport" `
+          -reporttypes:"HtmlInline;Cobertura;Badges;MarkdownSummaryGithub;TextSummary"
+
+    - name: Display Coverage Summary
+      if: always()
+      shell: pwsh
+      run: |
+        Write-Host "==================================================="
+        Write-Host "           TEST AND COVERAGE SUMMARY"
+        Write-Host "==================================================="
+        if (Test-Path "./TestResults/CoverageReport/Summary.txt") {
+          Get-Content "./TestResults/CoverageReport/Summary.txt"
+        }
+        Write-Host "==================================================="
+
+    - name: Add Coverage PR Comment
+      if: github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        recreate: true
+        path: ./TestResults/CoverageReport/SummaryGithub.md
+
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action/windows@v2
+      if: always()
+      with:
+        files: |
+          TestResults/**/*.trx
+        check_name: 'Test Results'
+        comment_title: 'Test Results'
+        report_individual_runs: true
+
+    - name: Code Coverage Report
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      if: always()
+      with:
+        filename: TestResults/CoverageReport/Cobertura.xml
+        badge: true
+        fail_below_min: false
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: false
+        indicators: true
+        output: both
+        thresholds: '60 80'
+
+    - name: Add Coverage to Job Summary
+      if: always()
+      run: |
+        if (Test-Path "code-coverage-results.md") {
+          Get-Content "code-coverage-results.md" >> $env:GITHUB_STEP_SUMMARY
+        }
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: TestResults/**/*.trx
+        retention-days: 30
+
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-report
+        path: TestResults/CoverageReport/
+        retention-days: 30
+
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v4
+      if: always()
+      with:
+        files: ./TestResults/CoverageReport/Cobertura.xml
+        flags: unittests
+        name: codecov-hexgrid
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}  # Optional for public repos
+
+    - name: Publish Build Artifacts
+      run: |
+        dotnet publish HexGrid.Lib/HexGrid.Lib.csproj `
+          --configuration ${{ env.BUILD_CONFIGURATION }} `
+          --no-build `
+          --output ./publish
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: hexgrid-lib
+        path: ./publish/
+        retention-days: 30
+
+  quality-gate:
+    name: Quality Gate
+    runs-on: windows-latest
+    needs: build-and-test
+    if: success()
+    
+    steps:
+    - name: Download Coverage Report
+      uses: actions/download-artifact@v4
+      with:
+        name: coverage-report
+        path: ./CoverageReport
+
+    - name: Quality Gate Check
+      shell: pwsh
+      run: |
+        Write-Host "Quality Gate Checks" -ForegroundColor Cyan
+        Write-Host "===================" -ForegroundColor Cyan
+        
+        # Parse coverage from Summary.txt
+        if (Test-Path "./CoverageReport/Summary.txt") {
+          $summary = Get-Content "./CoverageReport/Summary.txt" -Raw
+          Write-Host $summary
+          
+          # Example: Extract line coverage percentage
+          if ($summary -match "Line coverage:\s+(\d+\.?\d*)%") {
+            $coverage = [decimal]$matches[1]
+            Write-Host "`nLine Coverage: $coverage%" -ForegroundColor $(if ($coverage -ge 80) { "Green" } elseif ($coverage -ge 60) { "Yellow" } else { "Red" })
+            
+            # Optional: Fail if coverage is below threshold
+            # if ($coverage -lt 60) {
+            #     Write-Host "Coverage is below 60% threshold!" -ForegroundColor Red
+            #     exit 1
+            # }
+          }
+        }
+        
+        Write-Host "`n Quality gate passed!" -ForegroundColor Green
