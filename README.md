@@ -8,6 +8,19 @@
 
 A comprehensive hexagonal grid library for .NET that provides coordinate systems, layouts, and utilities for working with hexagonal grids in games and applications.
 
+## 🎮 Interactive Demo
+
+Try out the **[Blazor WebAssembly Demo](HexGrid.Demo/)** to see the library in action! The demo features:
+- Interactive visualization of different grid types
+- Real-time parameter adjustments
+- Visual coordinate display
+- Code examples and usage patterns
+
+To run the demo locally:
+```bash
+dotnet run --project HexGrid.Demo/HexGrid.Demo.csproj
+```
+
 ## Features
 
 - **Multiple Coordinate Systems**: Axial, Cube, Offset, and Fractional coordinates

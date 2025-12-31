@@ -1,0 +1,224 @@
+@page "/examples"
+
+<PageTitle>Examples - HexGrid Demo</PageTitle>
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">📚 HexGrid Examples</h1>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h4>Code Examples</h4>
+                <p>Learn how to use the HexGrid library with these practical examples.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Example 1: Basic Rectangular Grid -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Example 1: Basic Rectangular Grid</h5>
+                </div>
+                <div class="card-body">
+                    <pre><code>// Create a pointy-top hexagonal layout
+var layout = new GridLayout(
+    LayoutOrientation.Pointy,
+    new PointD(30, 30),  // Hex size
+    new FractionalHexCoordinate(0, 0, 0)  // Origin
+);
+
+// Create a 5x4 rectangular grid
+var grid = HexGrid.CreateRectangle(
+    layout, 
+    width: 5, 
+    height: 4
+);
+
+// Access hexes
+var hex = grid.Grid[0][0];
+Console.WriteLine($"Q: {hex.Q}, R: {hex.R}");</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Example 2: Hexagonal Grid</h5>
+                </div>
+                <div class="card-body">
+                    <pre><code>// Create a flat-top orientation
+var layout = new GridLayout(
+    LayoutOrientation.Flat,
+    new PointD(25, 25),
+    new FractionalHexCoordinate(0, 0, 0)
+);
+
+// Generate a hexagonal grid with radius 3
+var hexGrid = HexGridGenerator.GenerateHexagonalGrid(
+    layout,
+    radius: 3
+);
+
+// Count hexes: (3*2+1)^2 - 3*3 = 49 - 9 = 37 hexes
+var hexCount = hexGrid.Sum(row => row.Length);</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Example 3 & 4 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Example 3: Coordinate Conversion</h5>
+                </div>
+                <div class="card-body">
+                    <pre><code>var layout = new GridLayout(
+    LayoutOrientation.Pointy,
+    new PointD(30, 30),
+    new FractionalHexCoordinate(0, 0, 0)
+);
+
+// Convert hex to pixel coordinates
+var hex = new AxialHexCoordinate(2, 3);
+var pixel = layout.HexToPixel(hex);
+Console.WriteLine($"X: {pixel.X}, Y: {pixel.Y}");
+
+// Convert pixel back to hex
+var hexCoord = layout.PixelToHex(pixel);
+var rounded = hexCoord.Round();
+Console.WriteLine($"Q: {rounded.Q}, R: {rounded.R}");</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Example 4: Hex Neighbors & Distance</h5>
+                </div>
+                <div class="card-body">
+                    <pre><code>var hex = new AxialHexCoordinate(0, 0);
+
+// Get all 6 neighbors
+var neighbors = hex.GetNeighbors();
+foreach (var neighbor in neighbors)
+{
+    Console.WriteLine($"Neighbor: Q={neighbor.Q}, R={neighbor.R}");
+}
+
+// Calculate distance between two hexes
+var hex1 = new AxialHexCoordinate(1, 1);
+var hex2 = new AxialHexCoordinate(4, 3);
+var distance = hex1.DistanceTo(hex2);
+Console.WriteLine($"Distance: {distance}");</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Example 5 & 6 -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Example 5: Triangular Grid</h5>
+                </div>
+                <div class="card-body">
+                    <pre><code>var layout = new GridLayout(
+    LayoutOrientation.Pointy,
+    new PointD(30, 30),
+    new FractionalHexCoordinate(0, 0, 0)
+);
+
+// Generate triangular grid
+var triangleGrid = HexGridGenerator.GenerateTriangularGrid(
+    layout,
+    size: 5,
+    invert: false
+);
+
+// Inverted triangle
+var invertedGrid = HexGridGenerator.GenerateTriangularGrid(
+    layout,
+    size: 5,
+    invert: true
+);</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Example 6: Polygon Corners</h5>
+                </div>
+                <div class="card-body">
+                    <pre><code>var layout = new GridLayout(
+    LayoutOrientation.Pointy,
+    new PointD(30, 30),
+    new FractionalHexCoordinate(100, 100, 0)
+);
+
+// Get the 6 corner points of a hex
+var hex = new AxialHexCoordinate(2, 2);
+var corners = layout.PolygonCorners(hex);
+
+// Use corners to draw hexagon in your graphics system
+foreach (var corner in corners)
+{
+    Console.WriteLine($"Corner: ({corner.X}, {corner.Y})");
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Getting Started -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Getting Started</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Installation</h6>
+                    <pre><code>dotnet add package HexGrid.Lib</code></pre>
+                    
+                    <h6 class="mt-3">Import Namespaces</h6>
+                    <pre><code>using HexGrid.Lib.Models;
+using HexGrid.Lib.Models.Coordinates;
+using HexGrid.Lib.Models.Layout;</code></pre>
+
+                    <h6 class="mt-3">Key Classes</h6>
+                    <ul>
+                        <li><code>GridLayout</code>: Defines the orientation and size of hexes</li>
+                        <li><code>AxialHexCoordinate</code>: Represents a hex using Q,R coordinates</li>
+                        <li><code>HexGridGenerator</code>: Static methods for generating various grid shapes</li>
+                        <li><code>HexGrid</code>: Container for a grid with layout information</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    pre {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 1rem;
+        overflow-x: auto;
+    }
+    
+    code {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        color: #212529;
+    }
+</style>
