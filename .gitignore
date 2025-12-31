@@ -65,3 +65,6 @@ Desktop.ini
 *~
 *.swp
 *.tmp
+
+## GitVersion
+.git/gitversion_cache/

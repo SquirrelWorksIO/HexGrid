@@ -41,6 +41,30 @@ jobs:
       with:
         fetch-depth: 0  # Shallow clones should be disabled for better analysis
 
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v3.0.0
+      with:
+        versionSpec: '6.x'
+
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v3.0.0
+      with:
+        useConfigFile: true
+        configFilePath: GitVersion.yml
+
+    - name: Display GitVersion Output
+      run: |
+        echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+        echo "AssemblySemVer: ${{ steps.gitversion.outputs.assemblySemVer }}"
+        echo "InformationalVersion: ${{ steps.gitversion.outputs.informationalVersion }}"
+        echo "NuGetVersion: ${{ steps.gitversion.outputs.nuGetVersion }}"
+        echo "Major: ${{ steps.gitversion.outputs.major }}"
+        echo "Minor: ${{ steps.gitversion.outputs.minor }}"
+        echo "Patch: ${{ steps.gitversion.outputs.patch }}"
+        echo "PreReleaseTag: ${{ steps.gitversion.outputs.preReleaseTag }}"
+        echo "CommitsSinceVersionSource: ${{ steps.gitversion.outputs.commitsSinceVersionSource }}"
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -50,7 +74,14 @@ jobs:
       run: dotnet restore ${{ env.SOLUTION_PATH }}
 
     - name: Build Solution
-      run: dotnet build ${{ env.SOLUTION_PATH }} --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+      run: |
+        dotnet build ${{ env.SOLUTION_PATH }} \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-restore \
+          /p:Version=${{ steps.gitversion.outputs.semVer }} \
+          /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} \
+          /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} \
+          /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }}
 
     - name: Run Tests with Coverage
       run: |
@@ -152,7 +183,17 @@ jobs:
         dotnet publish HexGrid.Lib/HexGrid.Lib.csproj \
           --configuration ${{ env.BUILD_CONFIGURATION }} \
           --no-build \
-          --output ./publish
+          --output ./publish \
+          /p:Version=${{ steps.gitversion.outputs.semVer }}
+
+    - name: Create NuGet Package
+      run: |
+        dotnet pack HexGrid.Lib/HexGrid.Lib.csproj \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-build \
+          --output ./packages \
+          /p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }} \
+          /p:Version=${{ steps.gitversion.outputs.semVer }}
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
@@ -160,6 +201,13 @@ jobs:
         name: hexgrid-lib
         path: ./publish/
         retention-days: 30
+
+    - name: Upload NuGet Package
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        path: ./packages/*.nupkg
+        retention-days: 90
 
   quality-gate:
     name: Quality Gate
