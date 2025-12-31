@@ -31,8 +31,6 @@ We use Conventional Commits to automatically determine version increments. This 
 
 ### Types and Version Impact
 
-### Types and Version Impact
-
 #### MAJOR Version (X.0.0) - Breaking Changes
 
 Triggered by:
