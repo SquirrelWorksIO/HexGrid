@@ -210,7 +210,7 @@ public static class HexGridGenerator
     private static AxialHexCoordinate[][] GenerateFlatTriangle(int size, AxialHexCoordinate origin)
     {
         var grid = new AxialHexCoordinate[size][];
-        for (var r = 0; r <= size; r++)
+        for (var r = 0; r < size; r++)
         {
             grid[r] = new AxialHexCoordinate[size - r + 1];
             for (var q = 0; q <= size - r; q++)
@@ -224,10 +224,10 @@ public static class HexGridGenerator
     private static AxialHexCoordinate[][] GenerateFlatTriangleInverted(int size, AxialHexCoordinate origin)
     {
         var grid = new AxialHexCoordinate[size][];
-        for (var q = 0; q <= size; q++)
+        for (var q = 0; q < size; q++)
         {
-            grid[q] = new AxialHexCoordinate[size - q];
-            for (var r = 0; r <= size - q; r++)
+            grid[q] = new AxialHexCoordinate[size - q + 1];
+            for (var r = 0; r < size - q; r++)
             {
                 grid[q][r] = new AxialHexCoordinate(q + origin.Q, (size - q - r) + origin.R);
             }
