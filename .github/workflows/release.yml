@@ -97,14 +97,24 @@ jobs:
         asset_name: HexGrid.Lib.${{ steps.gitversion.outputs.nuGetVersion }}.nupkg
         asset_content_type: application/zip
 
-    - name: Publish to NuGet.org
+    - name: Check NuGet API Key
+      id: check_nuget_key
       if: github.event_name == 'release' && !github.event.release.prerelease
+      run: |
+        if [ -z "${{ secrets.NUGET_API_KEY }}" ]; then
+          echo "has_key=false" >> $GITHUB_OUTPUT
+          echo "::warning::NUGET_API_KEY secret is not configured. Skipping NuGet.org publishing."
+        else
+          echo "has_key=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Publish to NuGet.org
+      if: github.event_name == 'release' && !github.event.release.prerelease && steps.check_nuget_key.outputs.has_key == 'true'
       run: |
         dotnet nuget push ./packages/*.nupkg \
           --api-key ${{ secrets.NUGET_API_KEY }} \
           --source https://api.nuget.org/v3/index.json \
           --skip-duplicate
-      continue-on-error: true
 
     - name: Publish to GitHub Packages
       if: github.event_name == 'release'
