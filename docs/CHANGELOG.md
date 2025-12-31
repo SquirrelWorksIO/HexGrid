@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Centralized build properties in Directory.Build.props
 - Comprehensive versioning documentation (VERSIONING.md)
 - Detailed contributing guidelines with Conventional Commits (CONTRIBUTING.md)
-- Quick reference guide for commit conventions (.github/COMMIT_CONVENTION.md)
+- Quick reference guide for commit conventions (docs/COMMIT_CONVENTION.md)
 - Release workflow for automated package publishing
 - GitVersion as local development tool
 
