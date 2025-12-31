@@ -190,10 +190,13 @@ jobs:
       run: |
         dotnet pack HexGrid.Lib/HexGrid.Lib.csproj \
           --configuration ${{ env.BUILD_CONFIGURATION }} \
-          --no-build \
+          --no-restore \
           --output ./packages \
-          /p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }} \
-          /p:Version=${{ steps.gitversion.outputs.semVer }}
+          /p:Version=${{ steps.gitversion.outputs.semVer }} \
+          /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} \
+          /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} \
+          /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }} \
+          /p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }}
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
