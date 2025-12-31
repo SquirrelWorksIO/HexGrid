@@ -1,4 +1,4 @@
-﻿# GitHub Actions CI/CD Workflow for HexGrid
+# GitHub Actions CI/CD Workflow for HexGrid
 # This workflow builds the solution, runs tests, generates coverage reports, and publishes test results
 
 name: CI/CD Pipeline
@@ -34,12 +34,44 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v4
+      with:
+        versionSpec: '6.x'
+
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v4
+      with:
+        useConfigFile: true
+        configFilePath: GitVersion.yml
+        updateAssemblyInfo: false
+        
+    - name: Set GitVersion Environment Variables
+      run: |
+        echo "GitVersion_SemVer=${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_ENV
+        echo "GitVersion_AssemblySemVer=${{ steps.gitversion.outputs.assemblySemVer }}" >> $GITHUB_ENV
+        echo "GitVersion_AssemblySemFileVer=${{ steps.gitversion.outputs.assemblySemFileVer }}" >> $GITHUB_ENV
+        echo "GitVersion_InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }}" >> $GITHUB_ENV
+
+    - name: Display GitVersion Output
+      run: |
+        echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+        echo "AssemblySemVer: ${{ steps.gitversion.outputs.assemblySemVer }}"
+        echo "InformationalVersion: ${{ steps.gitversion.outputs.informationalVersion }}"
+        echo "NuGetVersion: ${{ steps.gitversion.outputs.nuGetVersion }}"
+        echo "Major: ${{ steps.gitversion.outputs.major }}"
+        echo "Minor: ${{ steps.gitversion.outputs.minor }}"
+        echo "Patch: ${{ steps.gitversion.outputs.patch }}"
+        echo "PreReleaseTag: ${{ steps.gitversion.outputs.preReleaseTag }}"
+        echo "CommitsSinceVersionSource: ${{ steps.gitversion.outputs.commitsSinceVersionSource }}"
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -50,7 +82,14 @@ jobs:
       run: dotnet restore ${{ env.SOLUTION_PATH }}
 
     - name: Build Solution
-      run: dotnet build ${{ env.SOLUTION_PATH }} --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+      run: |
+        dotnet build ${{ env.SOLUTION_PATH }} \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-restore \
+          /p:Version=${{ steps.gitversion.outputs.semVer }} \
+          /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} \
+          /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} \
+          /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }}
 
     - name: Run Tests with Coverage
       run: |
@@ -152,7 +191,15 @@ jobs:
         dotnet publish HexGrid.Lib/HexGrid.Lib.csproj \
           --configuration ${{ env.BUILD_CONFIGURATION }} \
           --no-build \
-          --output ./publish
+          --output ./publish \
+          /p:Version=${{ steps.gitversion.outputs.semVer }}
+
+    - name: Create NuGet Package
+      run: |
+        dotnet pack HexGrid.Lib/HexGrid.Lib.csproj \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-restore \
+          --output ./packages
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
@@ -161,12 +208,23 @@ jobs:
         path: ./publish/
         retention-days: 30
 
+    - name: Upload NuGet Package
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        path: ./packages/*.nupkg
+        retention-days: 90
+
+    outputs:
+      semver: ${{ steps.gitversion.outputs.semVer }}
+      nuget_version: ${{ steps.gitversion.outputs.nuGetVersion }}
+
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
     needs: build-and-test
     if: success()
-    
+
     steps:
     - name: Download Coverage Report
       uses: actions/download-artifact@v4
@@ -178,17 +236,17 @@ jobs:
       run: |
         echo "Quality Gate Checks"
         echo "==================="
-        
+
         # Parse coverage from Summary.txt
         if [ -f "./CoverageReport/Summary.txt" ]; then
           cat "./CoverageReport/Summary.txt"
-          
+
           # Example: Extract line coverage percentage
           if grep -q "Line coverage:" "./CoverageReport/Summary.txt"; then
             COVERAGE=$(grep "Line coverage:" "./CoverageReport/Summary.txt" | grep -oP '\d+\.?\d*%' | head -1 | tr -d '%')
             echo ""
             echo "Line Coverage: ${COVERAGE}%"
-            
+
             # Optional: Fail if coverage is below threshold
             # if (( $(echo "$COVERAGE < 60" | bc -l) )); then
             #     echo "Coverage is below 60% threshold!"
@@ -196,6 +254,116 @@ jobs:
             # fi
           fi
         fi
-        
+
         echo ""
         echo " Quality gate passed!"
+
+  auto-tag:
+    name: Create Version Tag
+    runs-on: ubuntu-latest
+    needs: [build-and-test, quality-gate]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v3.0.2
+      with:
+        versionSpec: '6.x'
+
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v3.0.2
+      with:
+        useConfigFile: true
+        configFilePath: GitVersion.yml
+
+    - name: Check if Tag Exists
+      id: check_tag
+      run: |
+        TAG="v${{ steps.gitversion.outputs.semVer }}"
+        if git rev-parse "$TAG" >/dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+          echo "Tag $TAG already exists"
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "Tag $TAG does not exist"
+        fi
+
+    - name: Configure Git
+      if: steps.check_tag.outputs.exists == 'false'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Create and Push Tag
+      if: steps.check_tag.outputs.exists == 'false'
+      run: |
+        TAG="v${{ steps.gitversion.outputs.semVer }}"
+        echo "Creating tag: $TAG"
+        git tag -a "$TAG" -m "Release version ${{ steps.gitversion.outputs.semVer }}"
+        git push origin "$TAG"
+        echo " Tag $TAG created and pushed successfully"
+
+    - name: Create Release Notes
+      if: steps.check_tag.outputs.exists == 'false'
+      id: release_notes
+      run: |
+        set -e  # Exit on any error
+        
+        TAG="v${{ steps.gitversion.outputs.semVer }}"
+        echo "Generating release notes for $TAG"
+        
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -z "$LAST_TAG" ]; then
+          COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges) || {
+            echo "Error: Failed to retrieve git log"
+            exit 1
+          }
+        else
+          COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges) || {
+            echo "Error: Failed to retrieve git log from ${LAST_TAG}"
+            exit 1
+          }
+        fi
+        
+        # Save to file for next step
+        {
+          echo "## What's Changed"
+          echo ""
+          echo "$COMMITS"
+          echo ""
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${LAST_TAG}...${TAG}"
+        } > release_notes.md
+        
+        cat release_notes.md
+
+    - name: Create GitHub Release
+      if: steps.check_tag.outputs.exists == 'false'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.gitversion.outputs.semVer }}
+        name: Release v${{ steps.gitversion.outputs.semVer }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Summary
+      if: steps.check_tag.outputs.exists == 'false'
+      run: |
+        echo "##  Release Created!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** v${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Tag:** v${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Release:** https://github.com/${{ github.repository }}/releases/tag/v${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_STEP_SUMMARY

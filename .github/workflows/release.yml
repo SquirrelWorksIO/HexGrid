@@ -1,0 +1,144 @@
+# GitHub Actions Release Workflow for HexGrid
+# This workflow publishes NuGet packages when a release is created
+
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  BUILD_CONFIGURATION: 'Release'
+  SOLUTION_PATH: 'HexGrid.sln'
+
+jobs:
+  publish:
+    name: Build and Publish Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v3.0.2
+      with:
+        versionSpec: '6.x'
+
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v3.0.2
+      with:
+        useConfigFile: true
+        configFilePath: GitVersion.yml
+        updateAssemblyInfo: false
+        
+    - name: Set GitVersion Environment Variables
+      run: |
+        echo "GitVersion_SemVer=${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_ENV
+        echo "GitVersion_AssemblySemVer=${{ steps.gitversion.outputs.assemblySemVer }}" >> $GITHUB_ENV
+        echo "GitVersion_AssemblySemFileVer=${{ steps.gitversion.outputs.assemblySemFileVer }}" >> $GITHUB_ENV
+        echo "GitVersion_InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }}" >> $GITHUB_ENV
+
+    - name: Display Version Information
+      run: |
+        echo "=========================================="
+        echo "           VERSION INFORMATION"
+        echo "=========================================="
+        echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+        echo "NuGetVersion: ${{ steps.gitversion.outputs.nuGetVersion }}"
+        echo "AssemblySemVer: ${{ steps.gitversion.outputs.assemblySemVer }}"
+        echo "InformationalVersion: ${{ steps.gitversion.outputs.informationalVersion }}"
+        echo "=========================================="
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore Dependencies
+      run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+    - name: Build Solution
+      run: |
+        dotnet build ${{ env.SOLUTION_PATH }} \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-restore \
+          /p:Version=${{ steps.gitversion.outputs.semVer }} \
+          /p:AssemblyVersion=${{ steps.gitversion.outputs.assemblySemVer }} \
+          /p:FileVersion=${{ steps.gitversion.outputs.assemblySemFileVer }} \
+          /p:InformationalVersion=${{ steps.gitversion.outputs.informationalVersion }}
+
+    - name: Run Tests
+      run: |
+        dotnet test HexGrid.Tests/HexGrid.Tests.csproj \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-build \
+          --verbosity normal
+
+    - name: Create NuGet Package
+      run: |
+        dotnet pack HexGrid.Lib/HexGrid.Lib.csproj \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-restore \
+          --output ./packages
+
+    - name: Upload Package to GitHub Release
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./packages/HexGrid.Lib.${{ steps.gitversion.outputs.nuGetVersion }}.nupkg
+        asset_name: HexGrid.Lib.${{ steps.gitversion.outputs.nuGetVersion }}.nupkg
+        asset_content_type: application/zip
+
+    - name: Check NuGet API Key
+      id: check_nuget_key
+      if: github.event_name == 'release' && !github.event.release.prerelease
+      run: |
+        if [ -z "${{ secrets.NUGET_API_KEY }}" ]; then
+          echo "has_key=false" >> $GITHUB_OUTPUT
+          echo "::warning::NUGET_API_KEY secret is not configured. Skipping NuGet.org publishing."
+        else
+          echo "has_key=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Publish to NuGet.org
+      if: github.event_name == 'release' && !github.event.release.prerelease && steps.check_nuget_key.outputs.has_key == 'true'
+      run: |
+        dotnet nuget push ./packages/*.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
+
+    - name: Publish to GitHub Packages
+      if: github.event_name == 'release'
+      run: |
+        dotnet nuget push ./packages/*.nupkg \
+          --api-key ${{ secrets.GITHUB_TOKEN }} \
+          --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json \
+          --skip-duplicate
+      continue-on-error: true
+
+    - name: Create Version Tag Comment
+      if: github.event_name == 'release'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: `🚀 Released version **${{ steps.gitversion.outputs.semVer }}**\n\nNuGet Package: \`HexGrid.Lib.${{ steps.gitversion.outputs.nuGetVersion }}.nupkg\``
+          })
