@@ -1,4 +1,4 @@
-﻿# GitHub Actions CI/CD Workflow for HexGrid
+# GitHub Actions CI/CD Workflow for HexGrid
 # This workflow builds the solution, runs tests, generates coverage reports, and publishes test results
 
 name: CI/CD Pipeline
