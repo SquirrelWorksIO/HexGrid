@@ -1,0 +1,20 @@
+{
+  "dotnet.defaultSolution": "HexGrid.sln",
+  "dotnet-test-explorer.testProjectPath": "**/*Tests.csproj",
+  "dotnet-test-explorer.codeLens": true,
+  "dotnet-test-explorer.showCodeLens": true,
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true
+  },
+  "search.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "TestResults": true
+  },
+  "files.watcherExclude": {
+    "**/bin/**": true,
+    "**/obj/**": true,
+    "**/TestResults/**": true
+  }
+}
