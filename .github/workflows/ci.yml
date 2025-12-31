@@ -33,7 +33,7 @@ env:
 jobs:
   build-and-test:
     name: Build and Test
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     
     steps:
     - name: Checkout Code
@@ -54,12 +54,12 @@ jobs:
 
     - name: Run Tests with Coverage
       run: |
-        dotnet test ${{ env.TEST_PROJECT }} `
-          --configuration ${{ env.BUILD_CONFIGURATION }} `
-          --no-build `
-          --verbosity normal `
-          --collect:"XPlat Code Coverage" `
-          --results-directory ./TestResults `
+        dotnet test ${{ env.TEST_PROJECT }} \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-build \
+          --verbosity normal \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults \
           --logger "trx;LogFileName=TestResults.trx"
 
     - name: Install ReportGenerator
@@ -68,22 +68,21 @@ jobs:
     - name: Generate Coverage Report
       if: always()
       run: |
-        reportgenerator `
-          -reports:"./TestResults/**/coverage.cobertura.xml" `
-          -targetdir:"./TestResults/CoverageReport" `
+        reportgenerator \
+          -reports:"./TestResults/**/coverage.cobertura.xml" \
+          -targetdir:"./TestResults/CoverageReport" \
           -reporttypes:"HtmlInline;Cobertura;Badges;MarkdownSummaryGithub;TextSummary"
 
     - name: Display Coverage Summary
       if: always()
-      shell: pwsh
       run: |
-        Write-Host "==================================================="
-        Write-Host "           TEST AND COVERAGE SUMMARY"
-        Write-Host "==================================================="
-        if (Test-Path "./TestResults/CoverageReport/Summary.txt") {
-          Get-Content "./TestResults/CoverageReport/Summary.txt"
-        }
-        Write-Host "==================================================="
+        echo "==================================================="
+        echo "           TEST AND COVERAGE SUMMARY"
+        echo "==================================================="
+        if [ -f "./TestResults/CoverageReport/Summary.txt" ]; then
+          cat "./TestResults/CoverageReport/Summary.txt"
+        fi
+        echo "==================================================="
 
     - name: Add Coverage PR Comment
       if: github.event_name == 'pull_request'
@@ -93,14 +92,13 @@ jobs:
         path: ./TestResults/CoverageReport/SummaryGithub.md
 
     - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action/windows@v2
+      uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
         files: |
           TestResults/**/*.trx
         check_name: 'Test Results'
         comment_title: 'Test Results'
-        report_individual_runs: true
 
     - name: Code Coverage Report
       uses: irongut/CodeCoverageSummary@v1.3.0
@@ -119,9 +117,9 @@ jobs:
     - name: Add Coverage to Job Summary
       if: always()
       run: |
-        if (Test-Path "code-coverage-results.md") {
-          Get-Content "code-coverage-results.md" >> $env:GITHUB_STEP_SUMMARY
-        }
+        if [ -f "code-coverage-results.md" ]; then
+          cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+        fi
 
     - name: Upload Test Results
       uses: actions/upload-artifact@v4
@@ -151,9 +149,9 @@ jobs:
 
     - name: Publish Build Artifacts
       run: |
-        dotnet publish HexGrid.Lib/HexGrid.Lib.csproj `
-          --configuration ${{ env.BUILD_CONFIGURATION }} `
-          --no-build `
+        dotnet publish HexGrid.Lib/HexGrid.Lib.csproj \
+          --configuration ${{ env.BUILD_CONFIGURATION }} \
+          --no-build \
           --output ./publish
 
     - name: Upload Build Artifacts
@@ -165,7 +163,7 @@ jobs:
 
   quality-gate:
     name: Quality Gate
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: build-and-test
     if: success()
     
@@ -177,27 +175,27 @@ jobs:
         path: ./CoverageReport
 
     - name: Quality Gate Check
-      shell: pwsh
       run: |
-        Write-Host "Quality Gate Checks" -ForegroundColor Cyan
-        Write-Host "===================" -ForegroundColor Cyan
+        echo "Quality Gate Checks"
+        echo "==================="
         
         # Parse coverage from Summary.txt
-        if (Test-Path "./CoverageReport/Summary.txt") {
-          $summary = Get-Content "./CoverageReport/Summary.txt" -Raw
-          Write-Host $summary
+        if [ -f "./CoverageReport/Summary.txt" ]; then
+          cat "./CoverageReport/Summary.txt"
           
           # Example: Extract line coverage percentage
-          if ($summary -match "Line coverage:\s+(\d+\.?\d*)%") {
-            $coverage = [decimal]$matches[1]
-            Write-Host "`nLine Coverage: $coverage%" -ForegroundColor $(if ($coverage -ge 80) { "Green" } elseif ($coverage -ge 60) { "Yellow" } else { "Red" })
+          if grep -q "Line coverage:" "./CoverageReport/Summary.txt"; then
+            COVERAGE=$(grep "Line coverage:" "./CoverageReport/Summary.txt" | grep -oP '\d+\.?\d*%' | head -1 | tr -d '%')
+            echo ""
+            echo "Line Coverage: ${COVERAGE}%"
             
             # Optional: Fail if coverage is below threshold
-            # if ($coverage -lt 60) {
-            #     Write-Host "Coverage is below 60% threshold!" -ForegroundColor Red
+            # if (( $(echo "$COVERAGE < 60" | bc -l) )); then
+            #     echo "Coverage is below 60% threshold!"
             #     exit 1
-            # }
-          }
-        }
+            # fi
+          fi
+        fi
         
-        Write-Host "`n Quality gate passed!" -ForegroundColor Green
+        echo ""
+        echo " Quality gate passed!"
