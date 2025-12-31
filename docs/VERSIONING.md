@@ -126,10 +126,10 @@ git commit -m "ci: update GitHub Actions workflow"
 You can still use the legacy `+semver:` tags:
 
 ```bash
-git commit -m "Add new feature +semver: minor"
-git commit -m "Fix bug +semver: patch"
-git commit -m "Breaking change +semver: major"
-git commit -m "Update docs +semver: none"
+git commit -m "Add new feature +semver:minor"
+git commit -m "Fix bug +semver:patch"
+git commit -m "Breaking change +semver:major"
+git commit -m "Update docs +semver:none"
 ```
 
 ## Branch Strategy and Pre-release Labels
