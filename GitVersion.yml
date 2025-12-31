@@ -9,7 +9,7 @@ tag-prefix: '[vV]'
 
 # Conventional Commits patterns for automatic version bumping
 # BREAKING CHANGE in footer or ! after type triggers major version
-major-version-bump-message: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\(.+\))?!:|^BREAKING[\s-]CHANGE:|\+semver:\s?(breaking|major)'
+major-version-bump-message: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\(.+\))?!:|BREAKING[\s-]CHANGE:|\+semver:\s?(breaking|major)'
 # feat: triggers minor version
 minor-version-bump-message: '^feat(\(.+\))?:|^\+semver:\s?(feature|minor)'
 # fix: and other types trigger patch version
