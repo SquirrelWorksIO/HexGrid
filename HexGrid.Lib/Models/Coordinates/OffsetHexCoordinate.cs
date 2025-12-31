@@ -58,7 +58,7 @@ public class OffsetHexCoordinate(int col, int row)
 
     public static AxialHexCoordinate ToAxial(int col, int row, OffsetHexCoordinateType type)
     {
-        return (new OffsetHexCoordinate(col, row)).ToAxial(type);
+        return new OffsetHexCoordinate(col, row).ToAxial(type);
     }
 
     public static CubHexCoordinate ToCube(int col, int row, OffsetHexCoordinateType type)
