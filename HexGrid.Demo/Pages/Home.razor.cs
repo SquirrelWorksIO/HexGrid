@@ -15,7 +15,7 @@ public partial class Home
     private int triangleSize = 5;
     private int hexSize = 30;
     private bool showCoordinates = true;
-    private HexGridModel? currentGrid;
+    private HexCoordinateGrid? currentGrid;
 
     protected override void OnInitialized()
     {
@@ -64,20 +64,20 @@ public partial class Home
 
         currentGrid = selectedGridType switch
         {
-            "rectangular" => HexGridModel.CreateRectangle(layout, gridWidth, gridHeight),
-            "hexagonal" => new HexGridModel(
+            "rectangular" => HexCoordinateGrid.CreateRectangle(layout, gridWidth, gridHeight),
+            "hexagonal" => new HexCoordinateGrid(
                 layout,
                 HexGridGenerator.GenerateHexagonalGrid(layout, hexRadius)
             ),
-            "triangular" => new HexGridModel(
+            "triangular" => new HexCoordinateGrid(
                 layout,
                 HexGridGenerator.GenerateTriangularGrid(layout, triangleSize)
             ),
-            "parallelogram" => new HexGridModel(
+            "parallelogram" => new HexCoordinateGrid(
                 layout,
                 HexGridGenerator.GenerateParallelogramGrid(layout, gridWidth, gridHeight, ParallelogramOrientation.QR)
             ),
-            _ => global::HexGrid.Lib.Models.HexGridModel.CreateRectangle(layout, gridWidth, gridHeight)
+            _ => global::HexGrid.Lib.Models.HexCoordinateGrid.CreateRectangle(layout, gridWidth, gridHeight)
         };
 
         StateHasChanged();

@@ -4,18 +4,24 @@ using Layout;
 
 public static class HexGridGenerator
 {
-    public static AxialHexCoordinate[][] GenerateRectangularGrid(GridLayout layout, int width, int height, AxialHexCoordinate? origin = null)
+    public static AxialHexCoordinate[][] GenerateRectangularGrid(GridLayout layout, int width, int height, OffsetHexCoordinateType? offsetType = null, AxialHexCoordinate? origin = null)
     {
+        var offset = offsetType ?? (layout.Orientation.IsPointy ? OffsetHexCoordinateType.OddR : OffsetHexCoordinateType.OddQ);
         var grid = new AxialHexCoordinate[height][];
         var originCoord = origin ?? new AxialHexCoordinate(0, 0);
-        for (var r = 0; r < height; r++)
+
+        
+        for (var row = 0; row < height; row++)
         {
-            grid[r] = new AxialHexCoordinate[width];
-            for (var q = 0; q < width; q++)
+            grid[row] = new AxialHexCoordinate[width];
+            for (var col = 0; col < width; col++)
             {
-                grid[r][q] = new AxialHexCoordinate(q + originCoord.Q, r + originCoord.R);
+                var offsetCoord = new OffsetHexCoordinate(col, row);
+                var axialCoord = offsetCoord.ToAxial(offset);
+                grid[row][col] = new AxialHexCoordinate(axialCoord.Q + originCoord.Q, axialCoord.R + originCoord.R);
             }
         }
+
         return grid;
     }
 

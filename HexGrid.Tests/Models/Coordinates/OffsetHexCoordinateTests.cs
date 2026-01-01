@@ -68,7 +68,6 @@ public class OffsetHexCoordinateTests
         Assert.That(axial.Q, Is.EqualTo(2));
         Assert.That(axial.R, Is.EqualTo(1));
     }
-
     [Test]
     public void ToAxialWithOddQConvertsCorrectly()
     {
