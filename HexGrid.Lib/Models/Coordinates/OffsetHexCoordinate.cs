@@ -12,15 +12,15 @@ public class OffsetHexCoordinate(int col, int row)
         {
             OffsetHexCoordinateType.EvenQ => new OffsetHexCoordinate(
                 axial.Q,
-                axial.R + (axial.Q + (axial.Q & 1)) / 2),
+                axial.R + (axial.Q + Modulo(axial.Q, 2)) / 2),
             OffsetHexCoordinateType.OddQ => new OffsetHexCoordinate(
                 axial.Q,
-                axial.R + (axial.Q - (axial.Q & 1)) / 2),
+                axial.R + (axial.Q - Modulo(axial.Q, 2)) / 2),
             OffsetHexCoordinateType.EvenR => new OffsetHexCoordinate(
-                axial.Q + (axial.R + (axial.R & 1)) / 2,
+                axial.Q + (axial.R + Modulo(axial.R, 2)) / 2,
                 axial.R),
             OffsetHexCoordinateType.OddR => new OffsetHexCoordinate(
-                axial.Q + (axial.R - (axial.R & 1)) / 2,
+                axial.Q + (axial.R - Modulo(axial.R, 2)) / 2,
                 axial.R),
             _ => throw new ArgumentOutOfRangeException(nameof(type), "Invalid OffsetHexCoordinateType.")
         };
@@ -75,6 +75,11 @@ public class OffsetHexCoordinate(int col, int row)
     public static Point FromCube(int q, int r, int s, OffsetHexCoordinateType type)
     {
         return FromAxial(q, r, type);
+    }
+
+    private static int Modulo(int a, int b)
+    {
+        return (a % b + b) % b;
     }
 }
 

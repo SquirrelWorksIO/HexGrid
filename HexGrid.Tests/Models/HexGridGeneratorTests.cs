@@ -44,7 +44,7 @@ public class HexGridGeneratorTests
     public void GenerateRectangularGridWithOriginShouldOffsetCoordinates()
     {
         var origin = new AxialHexCoordinate(5, 10);
-        var grid = HexGridGenerator.GenerateRectangularGrid(_pointyLayout, 2, 2, origin);
+        var grid = HexGridGenerator.GenerateRectangularGrid(_pointyLayout, 2, 2, null, origin);
 
         Assert.That(grid[0][0], Is.EqualTo(new AxialHexCoordinate(5, 10)));
         Assert.That(grid[0][1], Is.EqualTo(new AxialHexCoordinate(6, 10)));
