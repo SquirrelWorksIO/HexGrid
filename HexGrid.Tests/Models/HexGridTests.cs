@@ -15,7 +15,7 @@ public class HexGridTests
         grid[0] = [new AxialHexCoordinate(0, 0)];
         var origin = new AxialHexCoordinate(5, 5);
 
-        var hexGrid = new HexGrid(layout, grid, origin);
+        var hexGrid = new HexCoordinateGrid(layout, grid, origin);
 
         Assert.That(hexGrid.Layout, Is.EqualTo(layout));
         Assert.That(hexGrid.Grid, Is.EqualTo(grid));
@@ -29,7 +29,7 @@ public class HexGridTests
         var grid = new AxialHexCoordinate[1][];
         grid[0] = [new AxialHexCoordinate(0, 0)];
 
-        var hexGrid = new HexGrid(layout, grid);
+        var hexGrid = new HexCoordinateGrid(layout, grid);
 
         Assert.That(hexGrid.Origin, Is.EqualTo(new AxialHexCoordinate(0, 0)));
     }
@@ -41,7 +41,7 @@ public class HexGridTests
         var width = 3;
         var height = 2;
 
-        var hexGrid = HexGrid.CreateRectangle(layout, width, height);
+        var hexGrid = HexCoordinateGrid.CreateRectangle(layout, width, height);
 
         Assert.That(hexGrid.Grid.Length, Is.EqualTo(height));
         Assert.That(hexGrid.Grid[0].Length, Is.EqualTo(width));
@@ -58,7 +58,7 @@ public class HexGridTests
         var height = 2;
         var origin = new AxialHexCoordinate(10, 20);
 
-        var hexGrid = HexGrid.CreateRectangle(layout, width, height, origin);
+        var hexGrid = HexCoordinateGrid.CreateRectangle(layout, width, height, origin);
 
         Assert.That(hexGrid.Origin, Is.EqualTo(origin));
         Assert.That(hexGrid.Grid[0][0], Is.EqualTo(new AxialHexCoordinate(10, 20)));
@@ -72,7 +72,7 @@ public class HexGridTests
     {
         var layout = new GridLayout(LayoutOrientation.Pointy, new PointD(10, 10), new FractionalHexCoordinate(0, 0, 0));
 
-        var hexGrid = HexGrid.CreateRectangle(layout, 2, 2, null);
+        var hexGrid = HexCoordinateGrid.CreateRectangle(layout, 2, 2, null);
 
         Assert.That(hexGrid.Origin, Is.EqualTo(new AxialHexCoordinate(0, 0)));
     }
@@ -84,7 +84,7 @@ public class HexGridTests
         var width = 2;
         var height = 2;
 
-        var hexGrid = HexGrid.CreateRectangle(layout, width, height);
+        var hexGrid = HexCoordinateGrid.CreateRectangle(layout, width, height);
 
         Assert.That(hexGrid.Layout, Is.EqualTo(layout));
         Assert.That(hexGrid.Grid.Length, Is.EqualTo(height));
@@ -96,7 +96,7 @@ public class HexGridTests
     {
         var layout = new GridLayout(LayoutOrientation.Pointy, new PointD(10, 10), new FractionalHexCoordinate(0, 0, 0));
 
-        var hexGrid = HexGrid.CreateRectangle(layout, 1, 1);
+        var hexGrid = HexCoordinateGrid.CreateRectangle(layout, 1, 1);
 
         Assert.That(hexGrid.Grid.Length, Is.EqualTo(1));
         Assert.That(hexGrid.Grid[0].Length, Is.EqualTo(1));
