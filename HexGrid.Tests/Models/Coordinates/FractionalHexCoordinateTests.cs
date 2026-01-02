@@ -1,6 +1,6 @@
 namespace HexGrid.Tests.Models.Coordinates;
 
-using HexGrid.Lib.Models.Coordinates;
+using HexGrid.Models.Coordinates;
 
 [TestFixture]
 public class FractionalHexCoordinateTests

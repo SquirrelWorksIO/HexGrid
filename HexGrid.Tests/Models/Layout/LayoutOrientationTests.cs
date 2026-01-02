@@ -1,6 +1,6 @@
 namespace HexGrid.Tests.Models.Layout;
 
-using HexGrid.Lib.Models.Layout;
+using HexGrid.Models.Layout;
 
 [TestFixture]
 public class LayoutOrientationTests

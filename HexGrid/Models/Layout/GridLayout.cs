@@ -1,4 +1,4 @@
-namespace HexGrid.Lib.Models.Layout;
+namespace HexGrid.Models.Layout;
 using Coordinates;
 
 public record GridLayout(LayoutOrientation Orientation, PointD Size, FractionalHexCoordinate PixelOrigin)

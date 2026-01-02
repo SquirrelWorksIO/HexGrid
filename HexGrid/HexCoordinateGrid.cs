@@ -1,4 +1,4 @@
-namespace HexGrid.Lib.Models;
+namespace HexGrid.Models;
 
 using Coordinates;
 using Layout;

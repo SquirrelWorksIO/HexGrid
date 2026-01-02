@@ -27,9 +27,9 @@
 
   <!-- Package Metadata -->
   <PropertyGroup>
-    <Authors>SquirrelWorksIO</Authors>
+    <Authors>MacSquizzy</Authors>
     <Company>SquirrelWorks</Company>
-    <Product>HexGrid</Product>
+    <Product>SquirrelWorks.HexGrid</Product>
     <Copyright>Copyright © $([System.DateTime]::Now.Year) SquirrelWorks</Copyright>
     <PackageProjectUrl>https://github.com/SquirrelWorksIO/HexGrid</PackageProjectUrl>
     <RepositoryUrl>https://github.com/SquirrelWorksIO/HexGrid.git</RepositoryUrl>

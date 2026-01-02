@@ -1,4 +1,4 @@
-namespace HexGrid.Lib.Models.Coordinates;
+namespace HexGrid.Models.Coordinates;
 
 public record AxialHexCoordinate(int Q, int R)
 {
