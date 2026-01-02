@@ -24,24 +24,27 @@ branches:
     mode: ContinuousDelivery
     increment: Inherit
     is-release-branch: true
+    track-merge-target: false
   
   develop:
     mode: ContinuousDeployment
     label: alpha
     increment: Minor
     track-merge-target: true
-    is-source-branch-for: ['release', 'feature']
+    is-source-branch-for: ['release', 'feature', 'fix']
 
   release:
     mode: ContinuousDelivery
     label: beta
     increment: None
     is-release-branch: true
+    track-merge-target: false
 
   feature:
     mode: ContinuousDeployment
     label: '{BranchName}'
     increment: Inherit
+    track-merge-target: false
 
   fix:
     mode: ContinuousDeployment
@@ -55,11 +58,13 @@ branches:
     mode: ContinuousDeployment
     label: 'PullRequest'
     increment: Inherit
+    track-merge-target: false
 
   hotfix:
     mode: ContinuousDeployment
     label: beta
     increment: Patch
+    track-merge-target: false
 
 ignore:
   sha: []
