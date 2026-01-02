@@ -13,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HexGrid.Lib\HexGrid.Lib.csproj" />
+    <ProjectReference Include="..\HexGrid\HexGrid.csproj" />
   </ItemGroup>
-
 </Project>

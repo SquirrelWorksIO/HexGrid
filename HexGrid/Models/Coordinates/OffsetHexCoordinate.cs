@@ -1,4 +1,4 @@
-namespace HexGrid.Lib.Models.Coordinates;
+namespace HexGrid.Models.Coordinates;
 using System.Drawing;
 
 public class OffsetHexCoordinate(int col, int row)

@@ -1,8 +1,8 @@
 namespace HexGrid.Tests.Models;
 
-using HexGrid.Lib.Models;
-using HexGrid.Lib.Models.Coordinates;
-using HexGrid.Lib.Models.Layout;
+using HexGrid.Models;
+using HexGrid.Models.Coordinates;
+using HexGrid.Models.Layout;
 
 [TestFixture]
 public class HexGridGeneratorTests

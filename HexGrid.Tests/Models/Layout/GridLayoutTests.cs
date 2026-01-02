@@ -1,7 +1,7 @@
 namespace HexGrid.Tests.Models.Layout;
 
-using HexGrid.Lib.Models.Coordinates;
-using HexGrid.Lib.Models.Layout;
+using HexGrid.Models.Coordinates;
+using HexGrid.Models.Layout;
 
 [TestFixture]
 public class GridLayoutTests

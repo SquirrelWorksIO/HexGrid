@@ -1,6 +1,6 @@
-using HexGrid.Lib.Models;
-using HexGrid.Lib.Models.Coordinates;
-using HexGrid.Lib.Models.Layout;
+using HexGrid.Models;
+using HexGrid.Models.Coordinates;
+using HexGrid.Models.Layout;
 
 namespace HexGrid.Demo.Pages;
 
@@ -77,7 +77,7 @@ public partial class Home
                 layout,
                 HexGridGenerator.GenerateParallelogramGrid(layout, gridWidth, gridHeight, ParallelogramOrientation.QR)
             ),
-            _ => global::HexGrid.Lib.Models.HexCoordinateGrid.CreateRectangle(layout, gridWidth, gridHeight)
+            _ => HexCoordinateGrid.CreateRectangle(layout, gridWidth, gridHeight)
         };
 
         StateHasChanged();

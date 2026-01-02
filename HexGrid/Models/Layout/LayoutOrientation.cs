@@ -1,4 +1,4 @@
-namespace HexGrid.Lib.Models.Layout;
+namespace HexGrid.Models.Layout;
 
 public record LayoutOrientation
 {

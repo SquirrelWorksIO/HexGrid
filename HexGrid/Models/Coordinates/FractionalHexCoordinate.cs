@@ -1,4 +1,4 @@
-namespace HexGrid.Lib.Models.Coordinates;
+namespace HexGrid.Models.Coordinates;
 
 public record FractionalHexCoordinate(double Q, double R, double S)
 {
