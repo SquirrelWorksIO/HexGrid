@@ -23,36 +23,42 @@ branches:
     mode: ContinuousDeployment
     tag: '{BranchName}'
     increment: Inherit
+    source-branches: ['develop']
     
   fix:
     regex: ^fix(es)?[/-]
     mode: ContinuousDeployment
     tag: '{BranchName}'
     increment: Inherit
+    source-branches: ['develop', 'main', 'release', 'hotfix']
     
   bugfix:
     regex: ^bugfix(es)?[/-]
     mode: ContinuousDeployment
     tag: '{BranchName}'
     increment: Inherit
+    source-branches: ['develop', 'main', 'release', 'hotfix']
     
   pull-request:
     regex: ^(pull|pull\-requests|pr)[/-]
     mode: ContinuousDeployment
     tag: 'pr-{BranchName}'
     increment: Inherit
+    source-branches: ['develop', 'main', 'release', 'hotfix']
     
   hotfix:
     regex: ^hotfix(es)?[/-]
     mode: ContinuousDeployment
     tag: 'beta-{BranchName}'
     increment: Patch
+    source-branches: ['main']
     
   release:
     regex: ^releases?[/-]
     mode: ContinuousDeployment
     tag: 'rc-{BranchName}'
     increment: None
+    source-branches: ['develop', 'main', 'release', 'hotfix']
 
 ignore:
   sha: []
