@@ -57,7 +57,8 @@ After the fix, GitVersion correctly calculates versions based on commit messages
 ## Files Changed
 
 1. **GitVersion.yml** - Updated `main` branch configuration to use `increment: Inherit`
-2. **docs/VERSIONING.md** - Added documentation explaining the critical importance of this setting
+2. **GitVersion.yml** - Added `fix/*` branch configuration to prevent "No base versions determined" error
+3. **docs/VERSIONING.md** - Added documentation explaining the critical importance of this setting
 
 ## Testing
 
