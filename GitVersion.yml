@@ -1,0 +1,70 @@
+# GitVersion Configuration
+# Implements Semantic Versioning for HexGrid solution
+# Uses Conventional Commits for automatic version bumping
+# See: https://gitversion.net/docs/reference/configuration
+# See: https://www.conventionalcommits.org/
+
+mode: ContinuousDeployment
+tag-prefix: '[vV]'
+
+# Conventional Commits patterns for automatic version bumping
+# BREAKING CHANGE in footer or ! after type triggers major version
+major-version-bump-message: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\(.+\))?!:|BREAKING[\s-]CHANGE:|\+semver:\s?(breaking|major)'
+# feat: triggers minor version
+minor-version-bump-message: '^feat(\(.+\))?:|^\+semver:\s?(feature|minor)'
+# fix: and other types trigger patch version
+patch-version-bump-message: '^(fix|perf|revert)(\(.+\))?:|^\+semver:\s?(fix|patch)'
+# chore, docs, style, test, refactor without breaking changes don't bump version
+no-bump-message: '^(build|chore|ci|docs|style|test|refactor)(\(.+\))?:|^\+semver:\s?(none|skip)'
+
+commit-message-incrementing: Enabled
+
+branches:
+  main:
+    mode: ContinuousDelivery
+    increment: Inherit
+    is-release-branch: true
+    track-merge-target: false
+  
+  develop:
+    mode: ContinuousDeployment
+    label: alpha
+    increment: Minor
+    track-merge-target: true
+    is-source-branch-for: ['release', 'feature', 'fix']
+
+  release:
+    mode: ContinuousDelivery
+    label: beta
+    increment: None
+    is-release-branch: true
+    track-merge-target: false
+
+  feature:
+    mode: ContinuousDeployment
+    label: '{BranchName}'
+    increment: Inherit
+    track-merge-target: false
+
+  fix:
+    mode: ContinuousDeployment
+    label: '{BranchName}'
+    increment: Inherit
+    regex: '^fix(es)?[/-]'
+    source-branches: ['develop', 'main', 'release', 'feature', 'support', 'hotfix']
+    track-merge-target: false
+
+  pull-request:
+    mode: ContinuousDeployment
+    label: 'PullRequest'
+    increment: Inherit
+    track-merge-target: false
+
+  hotfix:
+    mode: ContinuousDeployment
+    label: beta
+    increment: Patch
+    track-merge-target: false
+
+ignore:
+  sha: []

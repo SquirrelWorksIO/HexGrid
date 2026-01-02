@@ -1,0 +1,23 @@
+{
+  "configurations": {
+    "default": {
+      "include": [
+        "[HexGrid.Lib]*"
+      ],
+      "exclude": [
+        "[HexGrid.Tests]*",
+        "[*]*.Program",
+        "[*]*Migrations*"
+      ],
+      "excludeByFile": [
+        "**/obj/**",
+        "**/bin/**"
+      ],
+      "excludeByAttribute": [
+        "Obsolete",
+        "GeneratedCode",
+        "CompilerGenerated"
+      ]
+    }
+  }
+}
