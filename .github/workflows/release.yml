@@ -1,0 +1,53 @@
+name: Promote to Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      rc_version:
+        description: 'RC version to promote (e.g., 0.2.0-rc)'
+        required: true
+        type: string
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+        
+    - name: Validate RC Tag
+      run: |
+        if ! git tag -l | grep -q "v${{ inputs.rc_version }}"; then
+          echo "Error: Tag v${{ inputs.rc_version }} does not exist"
+          exit 1
+        fi
+        
+    - name: Extract Version
+      id: extract
+      run: |
+        STABLE_VERSION=$(echo "${{ inputs.rc_version }}" | sed 's/-rc$//')
+        echo "stable=$STABLE_VERSION" >> $GITHUB_OUTPUT
+        echo "Promoting v${{ inputs.rc_version }} to v$STABLE_VERSION"
+        
+    - name: Create Stable Tag
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git tag -a "v${{ steps.extract.outputs.stable }}" -m "Release ${{ steps.extract.outputs.stable }}"
+        git push origin "v${{ steps.extract.outputs.stable }}"
+        
+    - name: Create Stable Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.extract.outputs.stable }}
+        name: Release ${{ steps.extract.outputs.stable }}
+        body: |
+          # Release ${{ steps.extract.outputs.stable }}
+          
+          Promoted from Release Candidate v${{ inputs.rc_version }}
+        prerelease: false

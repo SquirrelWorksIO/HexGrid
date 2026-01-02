@@ -1,0 +1,72 @@
+<div class="hex-grid-container">
+    <svg width="@Width" height="@Height" viewBox="0 0 @Width @Height" class="hex-grid-svg">
+        <!-- Background -->
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        
+        @if (Grid != null && Grid.Grid != null)
+        {
+            @foreach (var row in Grid.Grid)
+            {
+                @foreach (var hex in row)
+                {
+                    var corners = Grid.Layout.PolygonCorners(hex);
+                    var points = string.Join(" ", corners.Select(c => $"{c.X},{c.Y}"));
+                    var center = Grid.Layout.HexToPixel(hex);
+                    var isHighlighted = HighlightedHex != null && hex.Q == HighlightedHex.Q && hex.R == HighlightedHex.R;
+                    var fillColor = isHighlighted ? "#4CAF50" : HexColor;
+                    
+                    <g class="hex-cell" @onclick="() => OnHexClick(hex)" style="cursor: pointer;">
+                        <polygon points="@points" 
+                                 fill="@fillColor" 
+                                 stroke="@StrokeColor" 
+                                 stroke-width="2"
+                                 opacity="0.7"/>
+                        
+                        @if (ShowCoordinates)
+                        {
+                            <g>
+                                <text x="@center.X" y="@(center.Y - 5)" text-anchor="middle" font-size="12" fill="#333">q:@hex.Q</text>
+                                <text x="@center.X" y="@(center.Y + 10)" text-anchor="middle" font-size="12" fill="#333">r:@hex.R</text>
+                            </g>
+                        }
+                    </g>
+                }
+            }
+        }
+    </svg>
+    
+    @if (HighlightedHex != null)
+    {
+        <div class="hex-info">
+            <strong>Selected Hex:</strong> Q: @HighlightedHex.Q, R: @HighlightedHex.R, S: @HighlightedHex.ToCube().S
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public global::HexGrid.Lib.Models.HexCoordinateGrid? Grid { get; set; }
+    
+    [Parameter]
+    public int Width { get; set; } = 800;
+    
+    [Parameter]
+    public int Height { get; set; } = 600;
+    
+    [Parameter]
+    public bool ShowCoordinates { get; set; } = true;
+    
+    [Parameter]
+    public string HexColor { get; set; } = "#2196F3";
+    
+    [Parameter]
+    public string StrokeColor { get; set; } = "#1976D2";
+    
+    private AxialHexCoordinate? HighlightedHex { get; set; }
+    
+    private void OnHexClick(AxialHexCoordinate hex)
+    {
+        HighlightedHex = hex;
+        StateHasChanged();
+    }
+}
