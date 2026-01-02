@@ -22,7 +22,7 @@ commit-message-incrementing: Enabled
 branches:
   main:
     mode: ContinuousDelivery
-    increment: Patch
+    increment: Inherit
     is-release-branch: true
   
   develop:
