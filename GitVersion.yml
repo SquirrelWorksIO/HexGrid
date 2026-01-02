@@ -1,5 +1,5 @@
-﻿mode: ContinuousDeployment
-next-version: 1.0.0
+mode: ContinuousDeployment
+next-version: 0.1.0
 tag-prefix: '[vV]'
 commit-message-incrementing: Enabled
 
@@ -7,7 +7,7 @@ branches:
   main:
     regex: ^main$
     mode: ContinuousDeployment
-    tag: ''
+    tag: 'rc'
     increment: Inherit
     track-merge-target: true
     
