@@ -43,6 +43,14 @@ branches:
     label: '{BranchName}'
     increment: Inherit
 
+  fix:
+    mode: ContinuousDeployment
+    label: '{BranchName}'
+    increment: Inherit
+    regex: '^fix(es)?[/-]'
+    source-branches: ['develop', 'main', 'release', 'feature', 'support', 'hotfix']
+    track-merge-target: false
+
   pull-request:
     mode: ContinuousDeployment
     label: 'PullRequest'
