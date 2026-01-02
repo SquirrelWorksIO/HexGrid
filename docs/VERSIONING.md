@@ -314,6 +314,26 @@ commit-message-incrementing: Enabled
 - **tag-prefix**: Allows tags like `v1.0.0` or `V1.0.0`
 - **commit-message-incrementing**: Uses `+semver:` tags to control versioning
 
+### Branch Configuration
+
+```yaml
+branches:
+  main:
+    mode: ContinuousDelivery
+    increment: Inherit  # CRITICAL: Must be Inherit to respect commit message patterns
+    is-release-branch: true
+  
+  develop:
+    mode: ContinuousDeployment
+    label: alpha
+    increment: Minor
+    track-merge-target: true
+```
+
+**⚠️ Important:** The `increment` setting for the `main` branch **must be set to `Inherit`** to enable automatic major version bumps from breaking change commits (e.g., `refactor!:`, `feat!:`, or commits with `BREAKING CHANGE:` footer).
+
+If set to `Patch`, `Minor`, or `Major`, that setting will override the commit message patterns and prevent automatic version bumping from working correctly. The `Inherit` value tells GitVersion to use the commit message patterns defined in the configuration to determine the version increment.
+
 ## Best Practices
 
 ### DO:
