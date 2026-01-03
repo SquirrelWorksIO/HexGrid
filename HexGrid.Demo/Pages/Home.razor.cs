@@ -41,6 +41,11 @@ public partial class Home
         {
             originX = triangleSize * hexSize / 2.0;
             originY = triangleSize * hexSize / 2.0;
+            if(isPointy)
+            {
+                originY = triangleSize * hexSize;
+            }
+            
         }
         else if(selectedGridType == "rectangular")
         {
@@ -64,20 +69,25 @@ public partial class Home
 
         currentGrid = selectedGridType switch
         {
-            "rectangular" => HexCoordinateGrid.CreateRectangle(layout, gridWidth, gridHeight),
+            "rectangular" => new HexCoordinateGrid(
+                layout,
+                HexGridGenerator.GenerateRectangularGrid(layout, gridWidth, gridHeight)
+            ),
             "hexagonal" => new HexCoordinateGrid(
                 layout,
                 HexGridGenerator.GenerateHexagonalGrid(layout, hexRadius)
             ),
             "triangular" => new HexCoordinateGrid(
                 layout,
-                HexGridGenerator.GenerateTriangularGrid(layout, triangleSize)
+                HexGridGenerator.GenerateTriangularGrid(layout, triangleSize, invert: true)
             ),
             "parallelogram" => new HexCoordinateGrid(
                 layout,
                 HexGridGenerator.GenerateParallelogramGrid(layout, gridWidth, gridHeight, ParallelogramOrientation.QR)
             ),
-            _ => HexCoordinateGrid.CreateRectangle(layout, gridWidth, gridHeight)
+            _ => new HexCoordinateGrid(
+                layout,
+                HexGridGenerator.GenerateRectangularGrid(layout, gridWidth, gridHeight))
         };
 
         StateHasChanged();
@@ -86,6 +96,6 @@ public partial class Home
     private int GetHexCount()
     {
         if (currentGrid?.Grid == null) return 0;
-        return currentGrid.Grid.Sum(row => row.Length);
+        return currentGrid.Grid.Count;
     }
 }
