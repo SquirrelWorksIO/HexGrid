@@ -11,8 +11,8 @@
                 var corners = Grid.Layout.PolygonCorners(hex);
                 var points = string.Join(" ", corners.Select(c => $"{c.X},{c.Y}"));
                 var center = Grid.Layout.HexToPixel(hex);
-                var isHighlighted = HighlightedHex != null && hex.Q == HighlightedHex.Q && hex.R == HighlightedHex.R;
-                var fillColor = isHighlighted ? "#4CAF50" : HexColor;
+                @* var isHighlighted = HighlightedHex != null && hex.Q == HighlightedHex.Q && hex.R == HighlightedHex.R; *@
+                var fillColor = GetHexFillColor(hex);
                 
                 <g class="hex-cell" @onclick="() => OnHexClick(hex)" style="cursor: pointer;">
                     <polygon points="@points" 
@@ -59,12 +59,55 @@
     
     [Parameter]
     public string StrokeColor { get; set; } = "#1976D2";
+
+    // New parameters for line drawing
+    [Parameter]
+    public bool LineDrawingMode { get; set; } = false;
+
+    [Parameter]
+    public AxialHexCoordinate? LineStartHex { get; set; }
+
+    [Parameter]
+    public AxialHexCoordinate? LineEndHex { get; set; }
+
+    [Parameter]
+    public ICollection<AxialHexCoordinate>? LinePathHexes { get; set; }
+
+    [Parameter]
+    public EventCallback<AxialHexCoordinate> OnHexSelected { get; set; }
     
     private AxialHexCoordinate? HighlightedHex { get; set; }
     
     private void OnHexClick(AxialHexCoordinate hex)
     {
-        HighlightedHex = hex;
+        if (LineDrawingMode)
+        {
+            OnHexSelected.InvokeAsync(hex);
+        }
+        else
+        {
+            HighlightedHex = hex;
+        }
         StateHasChanged();
+    }
+
+    private string GetHexFillColor(AxialHexCoordinate hex)
+    {
+        // Line drawing mode colors
+        if (LineDrawingMode)
+        {
+            if (LineStartHex != null && hex.Q == LineStartHex.Q && hex.R == LineStartHex.R)
+                return "#4CAF50"; // Green for start
+            
+            if (LineEndHex != null && hex.Q == LineEndHex.Q && hex.R == LineEndHex.R)
+                return "#F44336"; // Red for end
+            
+            if (LinePathHexes != null && LinePathHexes.Any(p => p.Q == hex.Q && p.R == hex.R))
+                return "#FFC107"; // Amber for path
+        }
+        
+        // Normal mode highlight
+        var isHighlighted = HighlightedHex != null && hex.Q == HighlightedHex.Q && hex.R == HighlightedHex.R;
+        return isHighlighted ? "#4CAF50" : HexColor;
     }
 }

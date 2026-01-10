@@ -82,6 +82,36 @@
                             Show Coordinates
                         </label>
                     </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" @bind="lineDrawingMode" @bind:after="ToggleLineDrawingMode" id="lineDrawMode">
+                        <label class="form-check-label" for="lineDrawMode">
+                            Line Drawing Mode
+                        </label>
+                    </div>
+
+                    @if (lineDrawingMode)
+                    {
+                        <div class="alert alert-info p-2 mb-3" role="alert">
+                            <small>
+                                @if (lineStartHex == null)
+                                {
+                                    <text><strong>Step 1:</strong> Click a hex to set start point</text>
+                                }
+                                else if (lineEndHex == null)
+                                {
+                                    <text><strong>Step 2:</strong> Click another hex to draw line</text>
+                                }
+                                else
+                                {
+                                    <text><strong>Line drawn!</strong> Click to draw a new line</text>
+                                }
+                            </small>
+                        </div>
+
+                        <button class="btn btn-outline-secondary btn-sm w-100 mb-3" @onclick="ClearLineDraw">
+                            🗑️ Clear Line
+                        </button>
+                    }
 
                     <button class="btn btn-success w-100" @onclick="GenerateGrid">
                         🔄 Regenerate Grid
@@ -100,6 +130,11 @@
                             <strong>Type:</strong> @selectedGridType<br/>
                             <strong>Orientation:</strong> @(isPointy ? "Pointy" : "Flat")<br/>
                             <strong>Hex Count:</strong> @GetHexCount()
+                            @if (lineDrawingMode && linePathHexes != null)
+                            {
+                                <br/><strong>Line Length:</strong> @linePathHexes.Count
+                            }
+                            
                         </small>
                     }
                 </div>
@@ -119,7 +154,12 @@
                                             Height="650" 
                                             ShowCoordinates="@showCoordinates"
                                             HexColor="#2196F3"
-                                            StrokeColor="#1976D2" />
+                                            StrokeColor="#1976D2"
+                                            LineDrawingMode="@lineDrawingMode"
+                                            LineStartHex="@lineStartHex"
+                                            LineEndHex="@lineEndHex"
+                                            LinePathHexes="@linePathHexes"
+                                            OnHexSelected="OnHexSelectedForLine" />
                     }
                     else
                     {

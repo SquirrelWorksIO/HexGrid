@@ -17,6 +17,12 @@ public partial class Home
     private bool showCoordinates = true;
     private HexCoordinateGrid? currentGrid;
 
+    // Line drawing mode fields
+    private bool lineDrawingMode = false;
+    private AxialHexCoordinate? lineStartHex = null;
+    private AxialHexCoordinate? lineEndHex = null;
+    private ICollection<AxialHexCoordinate>? linePathHexes = null;
+
     protected override void OnInitialized()
     {
         GenerateGrid();
@@ -97,5 +103,43 @@ public partial class Home
     {
         if (currentGrid?.Grid == null) return 0;
         return currentGrid.Grid.Count;
+    }
+
+    private void ToggleLineDrawingMode()
+    {
+        ClearLineDraw();
+    }
+
+    private void OnHexSelectedForLine(AxialHexCoordinate hex)
+    {
+        if (!lineDrawingMode || currentGrid == null)
+            return;
+
+        if (lineStartHex == null)
+        {
+            lineStartHex = hex;
+            lineEndHex = null;
+            linePathHexes = null;
+        }
+        else if (lineEndHex == null)
+        {
+            lineEndHex = hex;
+            // Calculate the line path
+            linePathHexes = currentGrid.LineDraw(lineStartHex, lineEndHex);
+        }
+        else
+        {
+            // Reset and start new line
+            lineStartHex = hex;
+            lineEndHex = null;
+            linePathHexes = null;
+        }
+    }
+
+    private void ClearLineDraw()
+    {
+        lineStartHex = null;
+        lineEndHex = null;
+        linePathHexes = null;
     }
 }
